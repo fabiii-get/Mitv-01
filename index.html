@@ -8,7 +8,8 @@
 <style>
   :root { --ui: rgba(0,0,0,.55); --fg:#fff; --accent:#e50914; }
   html,body{margin:0;height:100%;background:#000}
-  video{width:100%;height:100%;display:block;background:#000;outline:none}
+  #screen{position:fixed;inset:0;background:#000}
+  video, #ytFrame{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#000}
   #bar{
     position:fixed;left:0;right:0;top:0;display:flex;gap:.5rem;flex-wrap:wrap;
     align-items:center;padding:.6rem;background:var(--ui);color:var(--fg);
@@ -26,60 +27,129 @@
   }
   #overlay.show{display:grid}
   .hint{opacity:.9;max-width:760px}
-
-  /* Bloques YouTube */
-  .ytBlock {
-    position:relative;
-    width:100%;
-    height:400px;
-    background:#000;
-    margin-top:8px;
-  }
-  .ytBlock iframe{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    border:0;
-  }
 </style>
 </head>
 <body>
 
+<!-- Barra: “canales” -->
 <div id="bar" aria-hidden="true">
-  <button data-src="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8">Crónica 720p</button>
-  <button data-src="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_480p.m3u8">Crónica 480p</button>
+  <!-- HLS -->
+  <button data-hls="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8">Crónica 720p</button>
+  <button data-hls="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_480p.m3u8">Crónica 480p</button>
+  <!-- YouTube -->
+  <button data-yt="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1">A24 (YouTube)</button>
 </div>
 
-<!-- Canal 1: Crónica -->
-<video id="v" autoplay playsinline controls muted></video>
+<!-- Pantalla única -->
+<div id="screen">
+  <video id="v" autoplay playsinline controls muted></video>
+  <iframe id="ytFrame"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div>
 
+<!-- Mensaje de ayuda -->
 <div id="overlay" class="show">
   <div class="hint">
     Pulsá <b>OK/Enter</b> para activar <b>sonido</b> y <b>pantalla completa</b>.<br/>
-    Volumen: <b>Arriba/Abajo</b>.  Play/Pause: tecla de tu control.  Salir FS: <b>Back/Escape</b>.
+    Volumen: <b>Arriba/Abajo</b>.  Play/Pause: tecla del control.  Salir FS: <b>Back/Escape</b>.
   </div>
-</div>
-
-<!-- Canal 2: A24 (YouTube) -->
-<div class="ytBlock">
-  <iframe
-    src="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1"
-    allow="autoplay; fullscreen; picture-in-picture"
-    allowfullscreen></iframe>
 </div>
 
 <script>
 (function(){
   const v = document.getElementById('v');
+  const yt = document.getElementById('ytFrame');
   const overlay = document.getElementById('overlay');
   const bar = document.getElementById('bar');
+
+  let mode = 'hls'; // 'hls' | 'yt'
+  let hls;          // instancia Hls.js
 
   const DEFAULT_SRC = "https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8";
   const qs = new URL(location.href).searchParams;
   const SRC = qs.get('src') || DEFAULT_SRC;
 
-  function showBar(){ bar.classList.remove('hide'); clearTimeout(showBar.t); showBar.t=setTimeout(()=>bar.classList.add('hide'), 4000); }
+  <!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MiTV - TV Remote</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+  :root { --ui: rgba(0,0,0,.55); --fg:#fff; --accent:#e50914; }
+  html,body{margin:0;height:100%;background:#000}
+  #screen{position:fixed;inset:0;background:#000}
+  video, #ytFrame{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#000}
+  #bar{
+    position:fixed;left:0;right:0;top:0;display:flex;gap:.5rem;flex-wrap:wrap;
+    align-items:center;padding:.6rem;background:var(--ui);color:var(--fg);
+    transform:translateY(0);transition:.25s;backdrop-filter:blur(6px);z-index:10
+  }
+  #bar.hide{ transform:translateY(-110%); }
+  #bar button{
+    background:#111;border:1px solid #333;color:#fff;padding:.6rem .8rem;
+    border-radius:.6rem;cursor:pointer;font:600 16px system-ui,-apple-system,Segoe UI,Arial
+  }
+  #bar button.active{ background:var(--accent); border-color:#b30610; }
+  #overlay{
+    position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.85);
+    color:#fff;font:600 20px/1.4 system-ui,-apple-system,Segoe UI,Arial;text-align:center;padding:24px;z-index:9
+  }
+  #overlay.show{display:grid}
+  .hint{opacity:.9;max-width:760px}
+</style>
+</head>
+<body>
+
+<!-- Barra: “canales” -->
+<div id="bar" aria-hidden="true">
+  <!-- HLS -->
+  <button data-hls="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8">Crónica 720p</button>
+  <button data-hls="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_480p.m3u8">Crónica 480p</button>
+  <!-- YouTube -->
+  <button data-yt="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1">A24 (YouTube)</button>
+</div>
+
+<!-- Pantalla única -->
+<div id="screen">
+  <video id="v" autoplay playsinline controls muted></video>
+  <iframe id="ytFrame"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div>
+
+<!-- Mensaje de ayuda -->
+<div id="overlay" class="show">
+  <div class="hint">
+    Pulsá <b>OK/Enter</b> para activar <b>sonido</b> y <b>pantalla completa</b>.<br/>
+    Volumen: <b>Arriba/Abajo</b>.  Play/Pause: tecla del control.  Salir FS: <b>Back/Escape</b>.
+  </div>
+</div>
+
+<script>
+(function(){
+  const v = document.getElementById('v');
+  const yt = document.getElementById('ytFrame');
+  const overlay = document.getElementById('overlay');
+  const bar = document.getElementById('bar');
+
+  let mode = 'hls'; // 'hls' | 'yt'
+  let hls;          // instancia Hls.js
+
+  const DEFAULT_SRC = "https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8";
+  const qs = new URL(location.href).searchParams;
+  const SRC = qs.get('src') || DEFAULT_SRC;
+
+  function showBar(){
+    bar.classList.remove('hide');
+    clearTimeout(showBar.t);
+    showBar.t = setTimeout(()=>bar.classList.add('hide'), 4000);
+  }
+
   async function requestFS(){
     const el=document.documentElement;
     try{
@@ -89,50 +159,160 @@
       }
     }catch(e){}
   }
-  async function soundOn(){ try{ v.muted=false; v.volume=Math.max(0.3,v.volume||1); }catch(e){} try{ await v.play(); }catch(e){} }
-  function vol(delta){ v.volume = Math.max(0, Math.min(1, (v.volume||0)+delta)); showBar(); }
 
-  function load(src){
-    if (window.hls){ try{ window.hls.destroy(); }catch(e){} }
+  // ---- Cambio de canal
+  function setActive(btn){
+    document.querySelectorAll('#bar button').forEach(b=>b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+  }
+
+  function stopHLS(){
+    try{ if (hls) { hls.destroy(); hls = null; } }catch(e){}
+    v.pause(); v.removeAttribute('src'); v.load();
+  }
+
+  function stopYT(){
+    try{
+      yt.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+    }catch(e){}
+    yt.src = 'about:blank';
+  }
+
+  function playHLS(src, btn){
+    mode = 'hls';
+    setActive(btn);
+    // apagar YT y mostrar video
+    stopYT();
+    yt.style.display = 'none';
+    v.style.display = 'block';
+
     if (window.Hls && Hls.isSupported()){
-      window.hls = new Hls({lowLatencyMode:true});
-      window.hls.loadSource(src);
-      window.hls.attachMedia(v);
+      stopHLS();
+      hls = new Hls({lowLatencyMode:true});
+      hls.loadSource(src);
+      hls.attachMedia(v);
+      hls.on(Hls.Events.ERROR, (evt, data)=>{
+        if (data?.fatal){
+          overlay.innerHTML = '<div class="hint">Error cargando el canal. Probá otra calidad o regresá con la barra.</div>';
+          overlay.classList.add('show');
+        }
+      });
     } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
       v.src = src;
     } else {
       overlay.innerHTML = '<div class="hint">Tu navegador no soporta HLS.</div>';
       overlay.classList.add('show');
     }
-    document.querySelectorAll('#bar button[data-src]').forEach(b=>b.classList.remove('active'));
-    const btn=document.querySelector(`#bar button[data-src="${src}"]`); if(btn) btn.classList.add('active');
+    v.muted = true;
+    v.play().catch(()=>{});
   }
 
-  v.addEventListener('loadeddata', async ()=>{ try{ await v.play(); }catch(e){} });
-  v.addEventListener('playing', ()=> overlay.classList.remove('show'));
-  v.addEventListener('pause',   ()=> overlay.classList.add('show'));
+  function playYT(url, btn){
+    mode = 'yt';
+    setActive(btn);
+    // apagar HLS y mostrar YT
+    stopHLS();
+    v.style.display = 'none';
+    yt.style.display = 'block';
 
+    // autoplay (mute) por URL
+    yt.src = url;
+    // por si necesita “play”
+    setTimeout(()=>{
+      try{
+        yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+      }catch(e){}
+    }, 600);
+  }
+
+  // ---- Eventos UI
+  document.querySelectorAll('#bar button').forEach(btn=>{
+    const h = btn.getAttribute('data-hls');
+    const y = btn.getAttribute('data-yt');
+
+    if (h){
+      btn.addEventListener('click', ()=> playHLS(h, btn));
+    } else if (y){
+      btn.addEventListener('click', ()=> playYT(y, btn));
+    }
+  });
+
+  // Teclado / control
   document.addEventListener('keydown', async (e)=>{
     showBar();
     const k = e.key || e.code;
-    if (k==='Enter' || k==='NumpadEnter') { e.preventDefault(); await requestFS(); await soundOn(); overlay.classList.remove('show'); return; }
-    if (k==='MediaPlayPause' || k==='Play' || k==='Pause') { e.preventDefault(); if (v.paused) { await soundOn(); } else { v.pause(); } return; }
-    if (k==='ArrowUp')   { e.preventDefault(); vol(+0.05); return; }
-    if (k==='ArrowDown') { e.preventDefault(); vol(-0.05); return; }
-    if (k==='Escape' || k==='Backspace') { if (document.fullscreenElement && document.exitFullscreen) { e.preventDefault(); document.exitFullscreen(); } return; }
-    if (k==='ArrowLeft' || k==='ArrowRight') { e.preventDefault(); return; }
+
+    // OK/Enter → sonido + FS
+    if (k==='Enter' || k==='NumpadEnter') {
+      e.preventDefault();
+      await requestFS();
+      if (mode==='hls'){
+        try{ v.muted=false; v.volume=Math.max(0.3, v.volume||1); }catch(e){}
+        try{ await v.play(); }catch(e){}
+      } else if (mode==='yt'){
+        try{
+          yt.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+          yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        }catch(e){}
+      }
+      overlay.classList.remove('show');
+      return;
+    }
+
+    // Play/Pause
+    if (k==='MediaPlayPause' || k==='Play' || k==='Pause') {
+      e.preventDefault();
+      if (mode==='hls'){
+        if (v.paused) { try{ v.play(); }catch(e){} } else { v.pause(); }
+      } else {
+        // en YT: toggle aproximado (si estuviera pausado, play)
+        yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+      }
+      return;
+    }
+
+    // Volumen
+    if (k==='ArrowUp' || k==='ArrowDown'){
+      e.preventDefault();
+      if (mode==='hls'){
+        const delta = (k==='ArrowUp') ? +0.05 : -0.05;
+        v.volume = Math.max(0, Math.min(1, (v.volume||0)+delta));
+      } else {
+        // en YT no hay control directo de volumen vía teclado aquí
+        // (el usuario puede usar los controles del player)
+      }
+      return;
+    }
+
+    // Salir FS
+    if (k==='Escape' || k==='Backspace') {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        e.preventDefault(); document.exitFullscreen();
+      }
+      return;
+    }
   });
 
   document.addEventListener('pointerdown', async ()=>{
-    if (overlay.classList.contains('show')) { await requestFS(); await soundOn(); overlay.classList.remove('show'); }
+    if (overlay.classList.contains('show')) {
+      await requestFS();
+      if (mode==='hls'){
+        try{ v.muted=false; v.volume=Math.max(0.3, v.volume||1); }catch(e){}
+        try{ await v.play(); }catch(e){}
+      } else {
+        try{
+          yt.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+          yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        }catch(e){}
+      }
+      overlay.classList.remove('show');
+    }
   });
 
-  document.querySelectorAll('#bar button[data-src]').forEach(b=>{
-    b.addEventListener('click', ()=>load(b.dataset.src));
-  });
-
+  // Arranque: HLS por defecto
+  v.setAttribute('controls',''); // podés quitar controles si querés
   v.muted = true;
-  load(SRC);
+  playHLS(SRC, document.querySelector(`#bar button[data-hls="${SRC}"]`));
   showBar();
 })();
 </script>
