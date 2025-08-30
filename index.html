@@ -26,6 +26,19 @@
   }
   #overlay.show{display:grid}
   .hint{opacity:.9;max-width:760px}
+
+  /* === YT Canal 2 (overlay a pantalla completa) === */
+  #ytWrap{
+    position:fixed; inset:0; display:none; background:#000; z-index:20;
+  }
+  #ytWrap iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+  #ytControls{
+    position:absolute; right:1rem; bottom:1rem; display:flex; gap:.5rem; z-index:21;
+  }
+  #ytControls button{
+    background:rgba(0,0,0,.6); color:#fff; border:1px solid #333; padding:.6rem .9rem;
+    border-radius:.6rem; font:600 14px system-ui; cursor:pointer;
+  }
 </style>
 </head>
 <body>
@@ -37,14 +50,33 @@
   <button data-src="https://ythls.armelin.one/channel/UCFgk2Q2mVO1BklRQhSv6p0w.m3u8">C5N</button>
   <button data-src="https://ythls.armelin.one/channel/UCj6PcyLvpnIRT_2W_mwa9Aw.m3u8">TN</button>
   <button data-src="https://ythls.armelin.one/channel/UCba3hpU7EFBSk817y9qZkiA.m3u8">LN+</button>
+
+  <!-- BOTÓN NUEVO: abrir YT Canal 2 -->
+  <button id="btnYT">YouTube Canal 2</button>
 </div>
 
+<!-- Tu Canal 1 (se mantiene igual) -->
 <video id="v" autoplay playsinline controls muted></video>
 
 <div id="overlay" class="show">
   <div class="hint">
     Pulsá <b>OK/Enter</b> para activar <b>sonido</b> y <b>pantalla completa</b>.<br/>
     Volumen: <b>Arriba/Abajo</b>.  Play/Pause: tecla de tu control.  Salir FS: <b>Back/Escape</b>.
+  </div>
+</div>
+
+<!-- === YT Canal 2 (autoplay mute + botón de sonido y fullscreen) === -->
+<div id="ytWrap" aria-hidden="true">
+  <iframe id="yt"
+    src="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
+    title="YouTube Live"
+    allow="autoplay; fullscreen; picture-in-picture"
+    allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>
+
+  <div id="ytControls">
+    <button id="ytUnmute">🔊 Activar sonido</button>
+    <button id="ytClose">✖ Cerrar</button>
   </div>
 </div>
 
@@ -58,7 +90,6 @@
   const qs = new URL(location.href).searchParams;
   const SRC = qs.get('src') || DEFAULT_SRC;
 
-  // --- Helpers TV ---
   function showBar(){ bar.classList.remove('hide'); clearTimeout(showBar.t); showBar.t=setTimeout(()=>bar.classList.add('hide'), 4000); }
   async function requestFS(){
     const el=document.documentElement;
@@ -72,7 +103,6 @@
   async function soundOn(){ try{ v.muted=false; v.volume=Math.max(0.3,v.volume||1); }catch(e){} try{ await v.play(); }catch(e){} }
   function vol(delta){ v.volume = Math.max(0, Math.min(1, (v.volume||0)+delta)); showBar(); }
 
-  // --- Carga HLS ---
   function load(src){
     if (window.hls){ try{ window.hls.destroy(); }catch(e){} }
     if (window.Hls && Hls.isSupported()){
@@ -80,64 +110,79 @@
       window.hls.loadSource(src);
       window.hls.attachMedia(v);
     } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
-      v.src = src; // Safari/webOS/Tizen suelen soportar
+      v.src = src;
     } else {
       overlay.innerHTML = '<div class="hint">Tu navegador de TV no soporta HLS. Probá con Firefox/TV Bro/Android TV, o usa una app (VLC/Kodi).</div>';
       overlay.classList.add('show');
     }
-    // marcar activo
-    document.querySelectorAll('#bar button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#bar button[data-src]').forEach(b=>b.classList.remove('active'));
     const btn=document.querySelector(`#bar button[data-src="${src}"]`); if(btn) btn.classList.add('active');
   }
 
-  // --- Eventos básicos ---
   v.addEventListener('loadeddata', async ()=>{ try{ await v.play(); }catch(e){} });
   v.addEventListener('playing', ()=> overlay.classList.remove('show'));
   v.addEventListener('pause',   ()=> overlay.classList.add('show'));
 
-  // Teclado / control remoto
   document.addEventListener('keydown', async (e)=>{
     showBar();
     const k = e.key || e.code;
-
-    // OK/Enter → sonido + FS
     if (k==='Enter' || k==='NumpadEnter') { e.preventDefault(); await requestFS(); await soundOn(); overlay.classList.remove('show'); return; }
-
-    // Play/Pause del control
-    if (k==='MediaPlayPause' || k==='Play' || k==='Pause') {
-      e.preventDefault();
-      if (v.paused) { await soundOn(); } else { v.pause(); }
-      return;
-    }
-
-    // Volumen
+    if (k==='MediaPlayPause' || k==='Play' || k==='Pause') { e.preventDefault(); if (v.paused) { await soundOn(); } else { v.pause(); } return; }
     if (k==='ArrowUp')   { e.preventDefault(); vol(+0.05); return; }
     if (k==='ArrowDown') { e.preventDefault(); vol(-0.05); return; }
-
-    // Salir fullscreen
-    if (k==='Escape' || k==='Backspace') {
-      if (document.fullscreenElement && document.exitFullscreen) { e.preventDefault(); document.exitFullscreen(); }
-      return;
-    }
-
-    // Flechas izquierda/derecha: mostrar barra (no seek en vivo)
+    if (k==='Escape' || k==='Backspace') { if (document.fullscreenElement && document.exitFullscreen) { e.preventDefault(); document.exitFullscreen(); } return; }
     if (k==='ArrowLeft' || k==='ArrowRight') { e.preventDefault(); return; }
   });
 
-  // Clic/OK con ratón también habilita
   document.addEventListener('pointerdown', async ()=>{
     if (overlay.classList.contains('show')) { await requestFS(); await soundOn(); overlay.classList.remove('show'); }
   });
 
-  // Botones de la barra
   document.querySelectorAll('#bar button[data-src]').forEach(b=>{
     b.addEventListener('click', ()=>load(b.dataset.src));
   });
 
-  // Arranque
-  v.muted = true; // para que el autoplay no sea bloqueado en TVs estrictas
+  v.muted = true;
   load(SRC);
   showBar();
+
+
+  /* ====== YT Canal 2: lógica ====== */
+  const btnYT = document.getElementById('btnYT');
+  const ytWrap = document.getElementById('ytWrap');
+  const ytFrame = document.getElementById('yt');
+  const ytUnmute = document.getElementById('ytUnmute');
+  const ytClose = document.getElementById('ytClose');
+
+  function openYT(){
+    ytWrap.style.display = 'block';  // muestra a pantalla completa (overlay)
+    // el autoplay ya arranca en mute por la URL del iframe
+  }
+  function closeYT(){
+    ytWrap.style.display = 'none';
+    // Pausar por si sigue sonando en background
+    try{ ytFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); }catch(e){}
+  }
+  async function enableSoundAndFS(){
+    // pedir fullscreen (solo con interacción)
+    const el = document.documentElement;
+    try{
+      if(!document.fullscreenElement){
+        if(el.requestFullscreen) await el.requestFullscreen();
+        else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+      }
+    }catch(e){}
+    // unmute + play
+    try{
+      ytFrame.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+      ytFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+    }catch(e){}
+    ytUnmute.style.display = 'none';
+  }
+
+  btnYT.addEventListener('click', openYT);
+  ytClose.addEventListener('click', closeYT);
+  ytUnmute.addEventListener('click', enableSoundAndFS);
 })();
 </script>
 </body>
