@@ -26,18 +26,21 @@
   }
   #overlay.show{display:grid}
   .hint{opacity:.9;max-width:760px}
-
-  /* === YT Canal 2 (overlay a pantalla completa) === */
-  #ytWrap{
-    position:fixed; inset:0; display:none; background:#000; z-index:20;
+  
+  /* Canal 2 YouTube */
+  #ytBlock {
+    position:relative;
+    width:100%;
+    height:400px;
+    background:#000;
+    margin-top:8px; /* espacio debajo del video principal */
   }
-  #ytWrap iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
-  #ytControls{
-    position:absolute; right:1rem; bottom:1rem; display:flex; gap:.5rem; z-index:21;
-  }
-  #ytControls button{
-    background:rgba(0,0,0,.6); color:#fff; border:1px solid #333; padding:.6rem .9rem;
-    border-radius:.6rem; font:600 14px system-ui; cursor:pointer;
+  #ytBlock iframe{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    border:0;
   }
 </style>
 </head>
@@ -50,12 +53,9 @@
   <button data-src="https://ythls.armelin.one/channel/UCFgk2Q2mVO1BklRQhSv6p0w.m3u8">C5N</button>
   <button data-src="https://ythls.armelin.one/channel/UCj6PcyLvpnIRT_2W_mwa9Aw.m3u8">TN</button>
   <button data-src="https://ythls.armelin.one/channel/UCba3hpU7EFBSk817y9qZkiA.m3u8">LN+</button>
-
-  <!-- BOTÓN NUEVO: abrir YT Canal 2 -->
-  <button id="btnYT">YouTube Canal 2</button>
 </div>
 
-<!-- Tu Canal 1 (se mantiene igual) -->
+<!-- Canal 1 (mantiene tu video HLS) -->
 <video id="v" autoplay playsinline controls muted></video>
 
 <div id="overlay" class="show">
@@ -65,19 +65,11 @@
   </div>
 </div>
 
-<!-- === YT Canal 2 (autoplay mute + botón de sonido y fullscreen) === -->
-<div id="ytWrap" aria-hidden="true">
-  <iframe id="yt"
-    src="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
-    title="YouTube Live"
-    allow="autoplay; fullscreen; picture-in-picture"
-    allowfullscreen
-    referrerpolicy="strict-origin-when-cross-origin"></iframe>
-
-  <div id="ytControls">
-    <button id="ytUnmute">🔊 Activar sonido</button>
-    <button id="ytClose">✖ Cerrar</button>
-  </div>
+<!-- CANAL 2 (YouTube) -->
+<div id="ytBlock">
+  <iframe src="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1"
+          allow="autoplay; fullscreen"
+          allowfullscreen></iframe>
 </div>
 
 <script>
@@ -112,7 +104,7 @@
     } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
       v.src = src;
     } else {
-      overlay.innerHTML = '<div class="hint">Tu navegador de TV no soporta HLS. Probá con Firefox/TV Bro/Android TV, o usa una app (VLC/Kodi).</div>';
+      overlay.innerHTML = '<div class="hint">Tu navegador no soporta HLS.</div>';
       overlay.classList.add('show');
     }
     document.querySelectorAll('#bar button[data-src]').forEach(b=>b.classList.remove('active'));
@@ -145,44 +137,6 @@
   v.muted = true;
   load(SRC);
   showBar();
-
-
-  /* ====== YT Canal 2: lógica ====== */
-  const btnYT = document.getElementById('btnYT');
-  const ytWrap = document.getElementById('ytWrap');
-  const ytFrame = document.getElementById('yt');
-  const ytUnmute = document.getElementById('ytUnmute');
-  const ytClose = document.getElementById('ytClose');
-
-  function openYT(){
-    ytWrap.style.display = 'block';  // muestra a pantalla completa (overlay)
-    // el autoplay ya arranca en mute por la URL del iframe
-  }
-  function closeYT(){
-    ytWrap.style.display = 'none';
-    // Pausar por si sigue sonando en background
-    try{ ytFrame.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); }catch(e){}
-  }
-  async function enableSoundAndFS(){
-    // pedir fullscreen (solo con interacción)
-    const el = document.documentElement;
-    try{
-      if(!document.fullscreenElement){
-        if(el.requestFullscreen) await el.requestFullscreen();
-        else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-      }
-    }catch(e){}
-    // unmute + play
-    try{
-      ytFrame.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
-      ytFrame.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-    }catch(e){}
-    ytUnmute.style.display = 'none';
-  }
-
-  btnYT.addEventListener('click', openYT);
-  ytClose.addEventListener('click', closeYT);
-  ytUnmute.addEventListener('click', enableSoundAndFS);
 })();
 </script>
 </body>
