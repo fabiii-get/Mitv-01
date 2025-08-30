@@ -37,9 +37,9 @@
 
 <!-- Barra de canales -->
 <div id="bar" aria-hidden="true">
-  <button data-hls="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8">Crónica 720p</button>
-  <button data-hls="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_480p.m3u8">Crónica 480p</button>
-  <button data-yt="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1">A24 (YouTube)</button>
+  <button id="btnCronica" data-hls="720p">Crónica 720p</button>
+  <button id="btnA24" data-yt="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1">A24 (YouTube)</button>
+  <button id="btnSound">🔊 Sonido / Pantalla completa</button>
 </div>
 
 <!-- Pantalla única -->
@@ -54,23 +54,30 @@
 <!-- Overlay de ayuda -->
 <div id="overlay" class="show">
   <div class="hint">
-    Pulsá <b>OK/Enter</b> para activar <b>sonido</b> y <b>pantalla completa</b>.<br/>
-    Volumen: <b>Arriba/Abajo</b>.  Play/Pause: tecla del control.  Salir FS: <b>Back/Escape</b>.
+    Tocá <b>🔊 Sonido</b> o <b>Enter/OK</b> para activar <b>audio</b> y <b>pantalla completa</b>.<br/>
+    Volumen: <b>Arriba/Abajo</b>. Salir FS: <b>Back/Escape</b>.
   </div>
 </div>
 
 <script>
 (function(){
-  const v = document.getElementById('v');
+  const v  = document.getElementById('v');
   const yt = document.getElementById('ytFrame');
-  const overlay = document.getElementById('overlay');
   const bar = document.getElementById('bar');
-  let mode = 'hls';
-  let hls;
+  const overlay = document.getElementById('overlay');
+  const btnCronica = document.getElementById('btnCronica');
+  const btnA24 = document.getElementById('btnA24');
+  const btnSound = document.getElementById('btnSound');
 
-  const DEFAULT_SRC = "https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8";
-  const qs = new URL(location.href).searchParams;
-  const SRC = qs.get('src') || DEFAULT_SRC;
+  // Fuentes Crónica
+  const CRONICA = {
+    '720p': "https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8",
+    '480p': "https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_480p.m3u8",
+  };
+  let cronicaQuality = '720p';  // alterna 720p <-> 480p
+
+  let mode = 'hls'; // 'hls' | 'yt'
+  let hls;
 
   function showBar(){
     bar.classList.remove('hide');
@@ -112,15 +119,19 @@
     if (window.Hls && Hls.isSupported()){
       hls = new Hls({ lowLatencyMode:true });
       hls.attachMedia(v);
-      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-        hls.loadSource(src);
-      });
+      hls.on(Hls.Events.MEDIA_ATTACHED, () => { hls.loadSource(src); });
       hls.on(Hls.Events.MANIFEST_PARSED, async () => {
         try {
-          v.muted = true;
+          v.muted = true;          // autoplay permitido
           await v.play();
           overlay.classList.remove('show');
         } catch(e){}
+      });
+      hls.on(Hls.Events.ERROR, (evt, data)=>{
+        if (data?.fatal){
+          overlay.innerHTML = '<div class="hint">Error cargando Crónica. Probá cambiar de calidad tocando "Crónica".</div>';
+          overlay.classList.add('show');
+        }
       });
     } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
       v.src = src;
@@ -137,35 +148,52 @@
     stopHLS();
     v.style.display = 'none';
     yt.style.display = 'block';
-    yt.src = url;
+    yt.src = url; // autoplay mute por URL
     setTimeout(()=>{
       try{ yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); }catch(e){}
     }, 600);
   }
 
-  document.querySelectorAll('#bar button').forEach(btn=>{
-    const h = btn.getAttribute('data-hls');
-    const y = btn.getAttribute('data-yt');
-    if (h) btn.addEventListener('click', ()=> playHLS(h, btn));
-    if (y) btn.addEventListener('click', ()=> playYT(y, btn));
+  // ——— Botones ———
+  btnCronica.addEventListener('click', ()=>{
+    // Alterna calidad cada toque
+    cronicaQuality = (cronicaQuality === '720p') ? '480p' : '720p';
+    btnCronica.textContent = `Crónica ${cronicaQuality}`;
+    playHLS(CRONICA[cronicaQuality], btnCronica);
   });
 
+  btnA24.addEventListener('click', ()=>{
+    playYT(btnA24.getAttribute('data-yt'), btnA24);
+  });
+
+  // Botón de SONIDO / FULLSCREEN (destraba audio en todos)
+  btnSound.addEventListener('click', async ()=>{
+    await requestFS();
+    if (mode === 'hls'){
+      try{ v.muted=false; v.volume=Math.max(0.3, v.volume||1); }catch(e){}
+      try{ await v.play(); }catch(e){}
+    } else {
+      try{
+        yt.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+        yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+      }catch(e){}
+    }
+    overlay.classList.remove('show');
+  });
+
+  // Teclado / control remoto
   document.addEventListener('keydown', async (e)=>{
     showBar();
     const k = e.key || e.code;
+
+    // Enter/OK = mismo que botón de sonido
     if (k==='Enter' || k==='NumpadEnter') {
-      e.preventDefault(); await requestFS();
-      if (mode==='hls'){
-        try{ v.muted=false; v.volume=Math.max(0.3,v.volume||1); }catch(e){}
-        try{ await v.play(); }catch(e){}
-      } else {
-        try{
-          yt.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
-          yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-        }catch(e){}
-      }
-      overlay.classList.remove('show');
+      e.preventDefault();
+      btnSound.click();
+      return;
     }
+
+    // Volumen (solo HLS)
     if (k==='ArrowUp' || k==='ArrowDown'){
       e.preventDefault();
       if (mode==='hls'){
@@ -173,29 +201,22 @@
         v.volume = Math.max(0, Math.min(1, (v.volume||0)+delta));
       }
     }
+
+    // Salir FS
     if (k==='Escape' || k==='Backspace'){
       if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
     }
   });
 
+  // Primer toque en pantalla también destraba
   document.addEventListener('pointerdown', async ()=>{
     if (overlay.classList.contains('show')) {
-      await requestFS();
-      if (mode==='hls'){
-        try{ v.muted=false; v.volume=Math.max(0.3, v.volume||1); }catch(e){}
-        try{ await v.play(); }catch(e){}
-      } else {
-        try{
-          yt.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
-          yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-        }catch(e){}
-      }
-      overlay.classList.remove('show');
+      btnSound.click();
     }
   });
 
-  // Arranque en Crónica
-  playHLS(SRC, document.querySelector(`#bar button[data-hls="${SRC}"]`));
+  // Arranque: Crónica 720p
+  playHLS(CRONICA[cronicaQuality], btnCronica);
   showBar();
 })();
 </script>
