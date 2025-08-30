@@ -26,16 +26,16 @@
   }
   #overlay.show{display:grid}
   .hint{opacity:.9;max-width:760px}
-  
-  /* Canal 2 YouTube */
-  #ytBlock {
+
+  /* Bloque YouTube */
+  .ytBlock {
     position:relative;
     width:100%;
     height:400px;
     background:#000;
-    margin-top:8px; /* espacio debajo del video principal */
+    margin-top:8px;
   }
-  #ytBlock iframe{
+  .ytBlock iframe{
     position:absolute;
     inset:0;
     width:100%;
@@ -49,13 +49,9 @@
 <div id="bar" aria-hidden="true">
   <button data-src="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8">Crónica 720p</button>
   <button data-src="https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_480p.m3u8">Crónica 480p</button>
-  <button data-src="https://ythls.armelin.one/channel/UC2Qw1dzXDBAZPwS7zm37g8g.m3u8">A24</button>
-  <button data-src="https://ythls.armelin.one/channel/UCFgk2Q2mVO1BklRQhSv6p0w.m3u8">C5N</button>
-  <button data-src="https://ythls.armelin.one/channel/UCj6PcyLvpnIRT_2W_mwa9Aw.m3u8">TN</button>
-  <button data-src="https://ythls.armelin.one/channel/UCba3hpU7EFBSk817y9qZkiA.m3u8">LN+</button>
 </div>
 
-<!-- Canal 1 (mantiene tu video HLS) -->
+<!-- Canal 1: Crónica -->
 <video id="v" autoplay playsinline controls muted></video>
 
 <div id="overlay" class="show">
@@ -65,11 +61,12 @@
   </div>
 </div>
 
-<!-- CANAL 2 (YouTube) -->
-<div id="ytBlock">
-  <iframe src="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1"
-          allow="autoplay; fullscreen"
-          allowfullscreen></iframe>
+<!-- Canal 2: A24 (YouTube oficial) -->
+<div class="ytBlock">
+  <iframe
+    src="https://www.youtube.com/embed/live_stream?channel=UC2Qw1dzXDBAZPwS7zm37g8g&autoplay=1&mute=1"
+    allow="autoplay; fullscreen; picture-in-picture"
+    allowfullscreen></iframe>
 </div>
 
 <script>
