@@ -1,176 +1,91 @@
-{
-  "name": "IPTV LEGAL by MCR",
-  "author": "MCR",
-  "image": "https://i.ibb.co/d02C4nhf/LISTA-WISEPLAY-LOGO.png",
-  "groups": [
-    {
-      "name": "Pluto TV - 24/7 Series",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Pluto_tv.png/320px-Pluto_tv.png",
-      "stations": [
-        {
-          "name": "South Park (ES) • 24/7",
-          "image": "https://imagenes.elpais.com/resizer/sRj5DPzWrRGBkU8ro34WRufp-LE=/1960x1470/",
-          "info": "Pluto TV",
-          "url": "https://stitcher.pluto.tv/stitch/hls/channel/628751bb7154a40007168843/master.m3u8",
-          "embed": false
-        },
-        {
-          "name": "Bob Esponja (ES) • 24/7",
-          "image": "https://estaticos-cdn.elperiodico.com/clip/6040f332-9afa-471d-b076-c060ae37450a_alta-libre-aspect-ratio_default_0.jpg",
-          "info": "Pluto TV",
-          "url": "https://stitcher.pluto.tv/stitch/hls/channel/5f1aca0b4e448e00075e7c5e/master.m3u8",
-          "embed": false
-        }
-      ]
-    },
-    {
-      "name": "Rakuten TV (lista pública)",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Rakuten_TV_logo.svg",
-      "stations": [
-        {
-          "name": "Rakuten TV - Lista W3U",
-          "image": "https://i.ibb.co/HCZb4qf/rakuten.png",
-          "info": "Lista pública con múltiples canales",
-          "url": "https://helmerluzo.github.io/RakutenTV_HL/tv/w3u/RakutenTV_tv.w3u",
-          "embed": false
-        }
-      ]
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IPTV LEGAL – Wiseplay</title>
+  <meta name="description" content="Lista IPTV legal (Pluto TV + Rakuten) lista para Wiseplay.">
+  <style>
+    :root { --bg:#0f172a; --fg:#e2e8f0; --card:#111827; --accent:#22c55e; --muted:#94a3b8; }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b1020,#111827);color:var(--fg);
+         font:16px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;}
+    .wrap{max-width:760px;margin:0 auto;padding:32px 20px}
+    header{display:flex;gap:16px;align-items:center}
+    header img{width:56px;height:56px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+    h1{margin:0;font-size:clamp(22px,3.5vw,32px)}
+    p{color:var(--muted);line-height:1.6}
+    .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+          padding:20px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.25);margin:18px 0}
+    .row{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+    .btn{appearance:none;border:none;background:var(--accent);color:#06230f;font-weight:700;
+         padding:12px 16px;border-radius:12px;cursor:pointer}
+    .btn.secondary{background:transparent;color:var(--fg);border:1px solid rgba(255,255,255,.2)}
+    code, .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .footer{opacity:.7;font-size:14px;margin-top:24px}
+    a{color:#7dd3fc}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="https://i.ibb.co/d02C4nhf/LISTA-WISEPLAY-LOGO.png" alt="Logo">
+      <div>
+        <h1>IPTV LEGAL – Wiseplay</h1>
+        <p>Lista con fuentes legales (Pluto TV + lista pública de Rakuten). Importa por URL en Wiseplay o descarga el archivo.</p>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Enlace directo de la lista</h2>
+      <p class="mono" id="link">Calculando…</p>
+      <div class="row">
+        <button class="btn" onclick="downloadW3U()">⬇ Descargar .w3u</button>
+        <button class="btn secondary" onclick="copyLink()">📋 Copiar enlace</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Cómo importar en Wiseplay</h2>
+      <ol>
+        <li>Abre <b>Wiseplay</b> → <b>Listas</b> → <b>Añadir lista por URL</b>.</li>
+        <li>Pega el enlace mostrado arriba y confirma.</li>
+        <li>También puedes usar el archivo local descargado.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Archivos disponibles</h2>
+      <ul>
+        <li><a href="./iptv_legal_brand.w3u" download>iptv_legal_brand.w3u</a> (Wiseplay)</li>
+        <li><a href="./iptv_legal_brand.m3u" download>iptv_legal_brand.m3u</a> (VLC/TiviMate)</li>
+      </ul>
+    </section>
+
+    <p class="footer">Solo incluye fuentes públicas/legales. Puedes clonar este sitio y subirlo a Netlify o GitHub Pages.</p>
+  </div>
+
+  <script>
+    const w3uRelative = "iptv_legal_brand.w3u";
+    function absoluteW3U(){
+      return new URL(w3uRelative, window.location.href).href;
     }
-  ]
-}
-{"nombre": "MOVISTAR CINE",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@cdn-icons-png.flaticon.com/512/2917/2917656.png",
-"estaciones": [
-
-{"name": "MOVISTAR ESTRENOS",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/bgFxZZrw/Estrenos-por-Movistar-Plus-2025-Logo-svg.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/6341392460596e63edf38b013bd137c015e44007/stream.mp4"},
-
-{"nombre": "MOVISTAR CLÁSICOS",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/whXTTt4J/35406356-ico.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/f9d431a6839e7f9964a0884dc1f18d298d990f39/stream.mp4"},
-
-{"name": "MOVISTAR ACCIÓN",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/MkX4dhFy/35406363-ico.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/b125325f52e057b8e5ea17a8b60d512d13d44e53/stream.mp4"},
-
-{"nombre": "MOVISTAR INDIE",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/qMjNNY3Q/35406390-ico.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/508ffdbab097339adb4f3d922070b5df2c114d01/stream.mp4"},
-
-{"nombre": "MOVISTAR COMEDIA",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/ZRmWnzfG/35406397-ico.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/90a3ad526f67f987f662eaf7d52e88004c796914/stream.mp4"},
-
-{"nombre": "MOVISTAR DRAMA",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/sdXb3jPp/35406403-ico.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/edee311dc307e1638eeac880b11bb6f4759b0d83/stream.mp4"},
-
-{"name": "ÉXITOS DE MOVISTAR",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/2771VN9T/35406370-ico.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/2b8e5c7438d56541df3467cc5986cf1e66014101/stream.mp4"},
-
-{"nombre": "MOVISTAR DOCUMENTALES",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/PsMtNNP4/35445799-ico.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/6cda7d2622bcafd6aef486016238936855927d7d/stream.mp4"},
-
-{"nombre": "MOVISTAR ORIGINALES",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/7xzjDRqg/Originales-por-Movistar-Plus-2023-Logo-svg.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/1f092144252939810fd302cbd00d46de760b5dd7/stream.mp4"},
-
-{"nombre": "VACACIONES MOVISTAR",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/27dRPY1S/vacaciones.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/15123ab3458c59bf548fbf6e5503799e81da4de6/stream.mp4"},
-
-{"nombre": "MOVISTAR CINE ESPAÑOL",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/bRJXJZ2B/Cine-Espa-ol-por-Movistar-Plus-2023-Logo-svg.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/e47cdeba9d919d6a9b4fa3c72c8094178985f668/stream.mp4"},
-
-{"nombre": "MOVISTAR OESTE",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/392T3xKY/westernpng.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴄɪɴᴇ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@vlc.shickat.me:8000/pid/e740a34497c3ba5943613a06999e805e6bbfa159/stream.mp4"}]},
-
-{"nombre": "MOVISTAR DOCUMENTALES",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@cdn-icons-png.flaticon.com/512/2059/2059836.png",
-"estaciones": [
-
-{"name": "EN FAMILIA",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@static.wikia.nocookie.net/logofanon2/images/1/19/Discovery_Enfamilia_%282022%29.svg/revision/latest/scale-to-width-down/1281?cb=20230107184329",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126168"},
-
-{"nombre": "ODISEA",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@upload.wikimedia.org/wikipedia/commons/4/4e/ODISEA.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126175"},
-
-{"nombre": "CANAL DE DESCUBRIMIENTO",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@logodownload.org/wp-content/uploads/2017/04/discovery-channel-logo-1.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126179"},
-
-{"nombre": "DMAX",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@upload.wikimedia.org/wikipedia/commons/thumb/4/4f/DMAX_-_Logo_2016.svg/2560px-DMAX_-_Logo_2016.svg.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126180"},
-
-{"nombre": "AMC",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@upload.wikimedia.org/wikipedia/commons/4/4a/AMC%2B_logo.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126238"},
-
-{"nombre": "NATIONAL GEOGRAPHIC",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@photoville.nyc/wp-content/uploads/2022/05/ng_2flush_blackyellow_rgb.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126222"},
-
-{"nombre": "HISTORIA",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@upload.wikimedia.org/wikipedia/commons/thumb/f/f5/History_Logo.svg/1952px-History_Logo.svg.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126274"},
-
-{"nombre": "TOROLÉ",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@www.alcarria.tv/web2/wp-content/uploads/2019/10/torole_460.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126192"},
-
-{"nombre": "IBERALIA TV",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/TDpQKvhF/unnamed.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126194"},
-
-{"nombre": "IBERALIA PESCA",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@i.ibb.co/TDpQKvhF/unnamed.png",
-"info": "☞ ᴍᴏᴠɪꜱᴛᴀʀ ᴅᴏᴄᴜᴍᴇɴᴛᴀʟᴇꜱ ☜",
-"url": "http://contenido-ofrecido-por-bitly-josepimbatv@1.84423.xyz:8000/PSG@273Res/0OPSGMessi24/126273"}]},
-
-{"nombre": "CANALES 24/7",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@cdn-icons-png.flaticon.com/512/6357/6357073.png",
-"estaciones": [
-
-{"nombre": "BOB ESPONJA",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@estaticos-cdn.elperiodico.com/clip/6040f332-9afa-471d-b076-c060ae37450a_alta-libre-aspect-ratio_default_0.jpg",
-"url": "https://contenido-ofrecido-por-bitly-josepimbatv@stitcher.pluto.tv/stitch/hls/channel/5f1aca0b4e448e00075e7c5e/master.m3u8?deviceType=web&servertSideAds=false&deviceMake=safari&deviceVersion=1&deviceId=spencer&appVersion=1&deviceDNT=0&deviceModel=web&sid=efafffc7-cb21-11ed-9573-62c194ee7b161"},
-
-{"nombre": "SOUTH PARK",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@imagenes.elpais.com/resizer/sRj5DPzWrRGBkU8ro34WRufp-LE=/1960x1470/ filtros:focal(733x530:743x540)/cloudfront-eu-central-1.images.arcpublishing.com/prisa/62DCFDSGH5BARHMSABS35RLTCM.jpg",
-"url": "https://contenido-ofrecido-por-bitly-josepimbatv@stitcher.pluto.tv/stitch/hls/channel/628751bb7154a40007168843/master.m3u8?deviceType=web&servertSideAds=false&deviceMake=safari&deviceVersion=1&deviceId=spencer&appVersion=1&deviceDNT=0&deviceModel=web&sid=efafffc7-cb21-11ed-9573-62c194ee7b161"},
-
-{"nombre": "LAS TORTUGAS NINJA",
-"imagen": "https://contenido-ofrecido-por-bitly-josepimbatv@encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRjCZU5VhfZi4SrjxaKqmqtwNbzvT1tosIGVo4LLVInsyChkDLY",
-"url": "https://contenido-ofrecido-por-bitly-josepimbatv@stitcher.pluto.tv/stitch/hls/channel/61373f1a12dd9f00077dcd6f/master.m3u8?deviceType=web&servertSideAds=false&deviceMake=safari&deviceVersion=1&deviceId=spencer&appVersion=1&deviceDNT=0&deviceModel=web&sid=efafffc7-cb21-11ed-9573-62c194ee7b161"},
-
-{"nombre": "DORA LA EXPLORADORA",
-"image": "https://contenido-ofrecido-por-bitly-josepimbatv@imagenes.elpais.com/resizer/oZvzZUCGfbUXRUQCAC3CpHeFaS4=/98
+    function setLink(){
+      const p = document.getElementById('link');
+      p.textContent = absoluteW3U();
+    }
+    async function copyLink(){
+      try {
+        await navigator.clipboard.writeText(absoluteW3U());
+        alert("Enlace copiado ✔");
+      } catch(e){
+        alert("No se pudo copiar automáticamente. Copia el enlace a mano.");
+      }
+    }
+    function downloadW3U(){
+      window.location.href = w3uRelative;
+    }
+    setLink();
+  </script>
+</body>
+</html>
