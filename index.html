@@ -1,91 +1,243 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IPTV LEGAL – Wiseplay</title>
-  <meta name="description" content="Lista IPTV legal (Pluto TV + Rakuten) lista para Wiseplay.">
-  <style>
-    :root { --bg:#0f172a; --fg:#e2e8f0; --card:#111827; --accent:#22c55e; --muted:#94a3b8; }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0b1020,#111827);color:var(--fg);
-         font:16px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;}
-    .wrap{max-width:760px;margin:0 auto;padding:32px 20px}
-    header{display:flex;gap:16px;align-items:center}
-    header img{width:56px;height:56px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
-    h1{margin:0;font-size:clamp(22px,3.5vw,32px)}
-    p{color:var(--muted);line-height:1.6}
-    .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-          padding:20px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.25);margin:18px 0}
-    .row{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
-    .btn{appearance:none;border:none;background:var(--accent);color:#06230f;font-weight:700;
-         padding:12px 16px;border-radius:12px;cursor:pointer}
-    .btn.secondary{background:transparent;color:var(--fg);border:1px solid rgba(255,255,255,.2)}
-    code, .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-    .footer{opacity:.7;font-size:14px;margin-top:24px}
-    a{color:#7dd3fc}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web IPTV Player (legal)</title>
+<meta name="description" content="Mini reproductor IPTV web con canales públicos/legales.">
+<style>
+  :root{--bg:#0b1020;--panel:#0f172a;--card:#111827;--fg:#e2e8f0;--muted:#94a3b8;--accent:#22c55e}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:linear-gradient(180deg,#0b1020,#111827);color:var(--fg);font:15px system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+  .app{display:grid;grid-template-columns:320px 1fr;grid-template-rows:auto 1fr;min-height:100vh}
+  header{grid-column:1/3;display:flex;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.08);background:#0e152b}
+  header img{width:40px;height:40px;border-radius:10px}
+  header h1{font-size:18px;margin:0}
+  header p{margin:0;color:var(--muted)}
+  .sidebar{background:var(--panel);border-right:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;min-height:0}
+  .search{padding:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .search input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#0e1830;color:var(--fg)}
+  .list{overflow:auto;padding:8px}
+  .group{margin:8px 0}
+  .group h3{margin:10px 8px;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+  .ch{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;cursor:pointer}
+  .ch:hover{background:rgba(255,255,255,.06)}
+  .ch.active{background:rgba(34,197,94,.18);outline:1px solid rgba(34,197,94,.35)}
+  .ch img{width:36px;height:36px;border-radius:8px;object-fit:cover;background:#000}
+  .ch div{display:flex;flex-direction:column}
+  .ch .title{font-weight:600}
+  .ch .meta{color:var(--muted);font-size:12px}
+  .player{background:radial-gradient(60% 60% at 50% 40%, #0c1430 0%, #080c1a 100%);display:flex;flex-direction:column}
+  .video-wrap{position:relative;aspect-ratio:16/9;background:#000}
+  video{width:100%;height:100%;display:block;background:#000}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.15)}
+  .btn{appearance:none;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:var(--fg);padding:8px 12px;border-radius:10px;cursor:pointer}
+  .btn.accent{border-color:transparent;background:var(--accent);color:#08210f;font-weight:700}
+  .now{padding:12px;border-top:1px solid rgba(255,255,255,.08);color:var(--muted)}
+  .now b{color:var(--fg)}
+  .hint{font-size:12px;color:var(--muted);margin-left:auto;align-self:center}
+  @media (max-width:900px){.app{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}.sidebar{order:2}.player{order:3}}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <img src="https://i.ibb.co/d02C4nhf/LISTA-WISEPLAY-LOGO.png" alt="Logo">
-      <div>
-        <h1>IPTV LEGAL – Wiseplay</h1>
-        <p>Lista con fuentes legales (Pluto TV + lista pública de Rakuten). Importa por URL en Wiseplay o descarga el archivo.</p>
-      </div>
-    </header>
+<div class="app">
+  <header>
+    <img src="https://i.ibb.co/d02C4nhf/LISTA-WISEPLAY-LOGO.png" alt="logo">
+    <div>
+      <h1>Web IPTV Player</h1>
+      <p>Fuentes legales: Pluto TV + enlace público de Rakuten TV</p>
+    </div>
+  </header>
 
-    <section class="card">
-      <h2>Enlace directo de la lista</h2>
-      <p class="mono" id="link">Calculando…</p>
-      <div class="row">
-        <button class="btn" onclick="downloadW3U()">⬇ Descargar .w3u</button>
-        <button class="btn secondary" onclick="copyLink()">📋 Copiar enlace</button>
-      </div>
-    </section>
+  <aside class="sidebar">
+    <div class="search">
+      <input id="q" type="search" placeholder="Buscar canal... (Ej: South Park)">
+    </div>
+    <div id="list" class="list"></div>
+  </aside>
 
-    <section class="card">
-      <h2>Cómo importar en Wiseplay</h2>
-      <ol>
-        <li>Abre <b>Wiseplay</b> → <b>Listas</b> → <b>Añadir lista por URL</b>.</li>
-        <li>Pega el enlace mostrado arriba y confirma.</li>
-        <li>También puedes usar el archivo local descargado.</li>
-      </ol>
-    </section>
+  <main class="player">
+    <div class="video-wrap">
+      <video id="video" controls playsinline></video>
+    </div>
+    <div class="controls">
+      <button class="btn accent" id="playPause">⏯ Reproducir / Pausar</button>
+      <button class="btn" id="mute">🔇 Silencio</button>
+      <button class="btn" id="fs">⛶ Pantalla completa</button>
+      <span class="hint">Sugerencia: clic en un canal para cambiar • Soporta HLS (.m3u8)</span>
+    </div>
+    <div class="now" id="now">Selecciona un canal de la izquierda…</div>
+  </main>
+</div>
 
-    <section class="card">
-      <h2>Archivos disponibles</h2>
-      <ul>
-        <li><a href="./iptv_legal_brand.w3u" download>iptv_legal_brand.w3u</a> (Wiseplay)</li>
-        <li><a href="./iptv_legal_brand.m3u" download>iptv_legal_brand.m3u</a> (VLC/TiviMate)</li>
-      </ul>
-    </section>
-
-    <p class="footer">Solo incluye fuentes públicas/legales. Puedes clonar este sitio y subirlo a Netlify o GitHub Pages.</p>
-  </div>
-
-  <script>
-    const w3uRelative = "iptv_legal_brand.w3u";
-    function absoluteW3U(){
-      return new URL(w3uRelative, window.location.href).href;
-    }
-    function setLink(){
-      const p = document.getElementById('link');
-      p.textContent = absoluteW3U();
-    }
-    async function copyLink(){
-      try {
-        await navigator.clipboard.writeText(absoluteW3U());
-        alert("Enlace copiado ✔");
-      } catch(e){
-        alert("No se pudo copiar automáticamente. Copia el enlace a mano.");
+<!-- hls.js desde CDN -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+// =====================
+// 1) Playlist (LEGAL)
+// =====================
+// Puedes agregar más canales siguiendo el formato:
+// { name, image, info, url } con url .m3u8
+const PLAYLIST = [
+  {
+    group: "Pluto TV – 24/7 Series",
+    channels: [
+      {
+        name: "South Park (ES) • 24/7",
+        image: "https://imagenes.elpais.com/resizer/sRj5DPzWrRGBkU8ro34WRufp-LE=/1960x1470/",
+        info: "Pluto TV",
+        url: "https://stitcher.pluto.tv/stitch/hls/channel/628751bb7154a40007168843/master.m3u8"
+      },
+      {
+        name: "Bob Esponja (ES) • 24/7",
+        image: "https://estaticos-cdn.elperiodico.com/clip/6040f332-9afa-471d-b076-c060ae37450a_alta-libre-aspect-ratio_default_0.jpg",
+        info: "Pluto TV",
+        url: "https://stitcher.pluto.tv/stitch/hls/channel/5f1aca0b4e448e00075e7c5e/master.m3u8"
+      },
+      {
+        name: "Las Tortugas Ninja (ES) • 24/7",
+        image: "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRjCZU5VhfZi4SrjxaKqmqtwNbzvT1tosIGVo4LLVInsyChkDLY",
+        info: "Pluto TV",
+        url: "https://stitcher.pluto.tv/stitch/hls/channel/61373f1a12dd9f00077dcd6f/master.m3u8"
+      },
+      {
+        name: "Rugrats (ES) • 24/7",
+        image: "https://m.media-amazon.com/images/I/81xncuEH8VL._AC_UF1000,1000_QL80_.jpg",
+        info: "Pluto TV",
+        url: "https://stitcher.pluto.tv/stitch/hls/channel/610c09219fc0430007a3fce6/master.m3u8"
       }
-    }
-    function downloadW3U(){
-      window.location.href = w3uRelative;
-    }
-    setLink();
-  </script>
+    ]
+  },
+  {
+    group: "Pluto TV – Documentales & Reality",
+    channels: [
+      {
+        name: "Encantador de Perros (ES) • 24/7",
+        image: "https://cloudfront-eu-central-1.images.arcpublishing.com/prisaradio/GBG4QGKJQZKHVEJ6DZMYF6UHMM.jpg",
+        info: "Pluto TV",
+        url: "https://stitcher.pluto.tv/stitch/hls/channel/60e45687313c5f0007bc8e94/master.m3u8"
+      },
+      {
+        name: "En el punto de mira (ES) • 24/7",
+        image: "https://album.mediaset.es/cimg/2022/09/28/t8enelpuntodemirathumbnail_302b.jpeg",
+        info: "Pluto TV",
+        url: "https://stitcher.pluto.tv/stitch/hls/channel/61922be835f3910007fc58f6/master.m3u8"
+      }
+    ]
+  },
+  {
+    group: "Rakuten TV (enlace externo)",
+    channels: [
+      {
+        name: "Abrir lista pública de Rakuten TV",
+        image: "https://upload.wikimedia.org/wikipedia/commons/a/ab/Rakuten_TV_logo.svg",
+        info: "W3U con múltiples canales",
+        url: "https://helmerluzo.github.io/RakutenTV_HL/tv/w3u/RakutenTV_tv.w3u",
+        external: true
+      }
+    ]
+  }
+];
+
+// =====================
+// 2) UI y reproducción
+// =====================
+const $q = document.getElementById('q');
+const $list = document.getElementById('list');
+const $video = document.getElementById('video');
+const $now = document.getElementById('now');
+const $btnPlay = document.getElementById('playPause');
+const $btnMute = document.getElementById('mute');
+const $btnFs = document.getElementById('fs');
+
+let CURRENT = null;
+let hls = null;
+
+function createChannelNode(ch, idx, gidx){
+  const el = document.createElement('div');
+  el.className = 'ch';
+  el.dataset.idx = idx;
+  el.dataset.gidx = gidx;
+  el.innerHTML = `
+    <img src="${ch.image || ''}" alt="">
+    <div>
+      <div class="title">${ch.name}</div>
+      <div class="meta">${ch.info || ''}</div>
+    </div>`;
+  el.onclick = ()=> playChannel(ch, el);
+  return el;
+}
+
+function renderList(filter=''){
+  $list.innerHTML = '';
+  const f = filter.trim().toLowerCase();
+  PLAYLIST.forEach((group,gidx)=>{
+    const groupEl = document.createElement('div');
+    groupEl.className = 'group';
+    const title = document.createElement('h3');
+    title.textContent = group.group;
+    groupEl.appendChild(title);
+
+    group.channels.forEach((ch, idx)=>{
+      if(f && !(`${ch.name} ${ch.info||''}`.toLowerCase().includes(f))) return;
+      groupEl.appendChild(createChannelNode(ch, idx, gidx));
+    });
+
+    // Solo añade el grupo si quedó con canales
+    if(groupEl.childNodes.length>1) $list.appendChild(groupEl);
+  });
+}
+
+function setActive(el){
+  [...document.querySelectorAll('.ch.active')].forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+function playChannel(ch, el){
+  setActive(el);
+  CURRENT = ch;
+  $now.innerHTML = `<b>Reproduciendo:</b> ${ch.name} <span style="color:#94a3b8">(${ch.info||'Canal'})</span>`;
+  if(ch.external){
+    window.open(ch.url, '_blank');
+    return;
+  }
+  // Inicializa hls.js si hace falta
+  if (hls) { hls.destroy(); hls = null; }
+  if ($video.canPlayType('application/vnd.apple.mpegurl')) {
+    $video.src = ch.url;
+  } else if (window.Hls && Hls.isSupported()) {
+    hls = new Hls({ maxBufferLength: 60, enableWorker: true });
+    hls.loadSource(ch.url);
+    hls.attachMedia($video);
+    hls.on(Hls.Events.ERROR, (evt, data) => {
+      console.warn('HLS error', data);
+      if (data.fatal) {
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            hls.startLoad(); break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            hls.recoverMediaError(); break;
+          default:
+            hls.destroy(); break;
+        }
+      }
+    });
+  } else {
+    alert('Tu navegador no soporta HLS. Prueba en Chrome/Edge/Firefox con hls.js o en Safari/iOS.');
+    return;
+  }
+  $video.play().catch(()=>{/* autoplay bloqueado */});
+}
+
+$q.addEventListener('input', e=> renderList(e.target.value));
+$btnPlay.onclick = ()=>{ if($video.paused) $video.play(); else $video.pause(); };
+$btnMute.onclick = ()=>{ $video.muted = !$video.muted; $btnMute.textContent = $video.muted ? '🔊 Sonido' : '🔇 Silencio'; };
+$btnFs.onclick = ()=>{ if ($video.requestFullscreen) $video.requestFullscreen(); };
+
+renderList();
+// Autoplay del primer canal disponible:
+const first = document.querySelector('.ch'); if(first) first.click();
+</script>
 </body>
 </html>
