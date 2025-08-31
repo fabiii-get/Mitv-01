@@ -1,224 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MiTV - TV Remote</title>
-<!-- Versión estable de Hls.js -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12"></script>
-<style>
-  :root { --ui: rgba(0,0,0,.55); --fg:#fff; --accent:#e50914; }
-  html,body{margin:0;height:100%;background:#000}
-  #screen{position:fixed;inset:0;background:#000}
-  video, #ytFrame{
-    position:absolute;inset:0;width:100%;height:100%;border:0;
-    display:none;background:#000
-  }
-  #bar{
-    position:fixed;left:0;right:0;top:0;display:flex;gap:.5rem;flex-wrap:wrap;
-    align-items:center;padding:.6rem;background:var(--ui);color:var(--fg);
-    transform:translateY(0);transition:.25s;backdrop-filter:blur(6px);z-index:10
-  }
-  #bar.hide{ transform:translateY(-110%); }
-  #bar button{
-    background:#111;border:1px solid #333;color:#fff;padding:.6rem .8rem;
-    border-radius:.6rem;cursor:pointer;font:600 16px system-ui,-apple-system,Segoe UI,Arial
-  }
-  #bar button.active{ background:var(--accent); border-color:#b30610; }
-  #overlay{
-    position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.85);
-    color:#fff;font:600 20px/1.4 system-ui,-apple-system,Segoe UI,Arial;text-align:center;padding:24px;z-index:9
-  }
-  #overlay.show{display:grid}
-  .hint{opacity:.9;max-width:760px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
+  <title>Simulador TikTok (3 embeds)</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,Arial}
+    .feed{height:100vh;overflow:auto;scroll-snap-type:y mandatory;scrollbar-width:none}
+    .feed::-webkit-scrollbar{display:none}
+    .item{display:flex;justify-content:center;align-items:center;height:100vh;scroll-snap-align:start;padding:0 10px}
+    .wrap{width:100%;max-width:500px;margin:0 auto}
+    .stack-right{position:fixed;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px}
+    .bigbtn{width:64px;height:64px;border-radius:999px;border:none;cursor:pointer;background:#ffffff2a;color:#fff;font-size:28px;backdrop-filter: blur(6px)}
+    .bigbtn:active{transform:scale(.98)}
+    .gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;z-index:10}
+    .gate button{font-size:1rem;padding:.9rem 1.2rem;border-radius:999px;border:0;background:#fff;color:#000;cursor:pointer}
+  </style>
 </head>
 <body>
-
-<!-- Barra de canales -->
-<div id="bar" aria-hidden="true">
-  <button id="btnCronica" data-hls="720p">Crónica. 720p</button>
-  <button id="btnA24" data-yt="https://www.youtube.com/embed/ArKbAx1K-2U?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1">A24 (YouTube)</button>
-  <button id="btnSound"> Sonido </button>
-</div>
-
-<!-- Pantalla única -->
-<div id="screen">
-  <video id="v" autoplay playsinline muted></video>
-  <iframe id="ytFrame"
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowfullscreen
-          referrerpolicy="strict-origin-when-cross-origin"></iframe>
-</div>
-
-<!-- Overlay de ayuda -->
-<div id="overlay" class="show">
-  <div class="hint">
-    Tocá <b>🔊 </b> o <b>Enter/OK</b> para activar <b>audio</b> y <b>pantalla completa</b>.<br/>
-    Volumen: <b>Arriba/Abajo</b>. Salir FS: <b>Back/Escape</b>.
+  <!-- Gate para primer toque en móvil -->
+  <div class="gate" id="gate">
+    <button id="start">▶️ Iniciar</button>
   </div>
-</div>
 
-<script>
-(function(){
-  const v  = document.getElementById('v');
-  const yt = document.getElementById('ytFrame');
-  const bar = document.getElementById('bar');
-  const overlay = document.getElementById('overlay');
-  const btnCronica = document.getElementById('btnCronica');
-  const btnA24 = document.getElementById('btnA24');
-  const btnSound = document.getElementById('btnSound');
+  <div class="feed" id="feed">
+    <!-- TikTok 1 -->
+    <section class="item">
+      <div class="wrap">
+        <blockquote class="tiktok-embed" cite="https://vm.tiktok.com/ZMA61uufF/" style="background:#000">
+          <section><a href="https://vm.tiktok.com/ZMA61uufF/">TikTok 1</a></section>
+        </blockquote>
+      </div>
+    </section>
 
-  // Fuentes Crónica
-  const CRONICA = {
-    '720p': "https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_720p.m3u8",
-    '480p': "https://g3.vxral-hor.transport.edge-access.net/a09/ngrp:cronicatv_video1-100044_all/cronicatv_video1-100044_480p.m3u8",
-  };
-  let cronicaQuality = '720p';  // alterna 720p <-> 480p
+    <!-- TikTok 2 -->
+    <section class="item">
+      <div class="wrap">
+        <blockquote class="tiktok-embed" cite="https://vm.tiktok.com/ZMA613KNM/" style="background:#000">
+          <section><a href="https://vm.tiktok.com/ZMA613KNM/">TikTok 2</a></section>
+        </blockquote>
+      </div>
+    </section>
 
-  let mode = 'hls'; // 'hls' | 'yt'
-  let hls;
+    <!-- TikTok 3 (agregado) -->
+    <section class="item">
+      <div class="wrap">
+        <!-- Reemplazá esta URL con el link del tercer TikTok -->
+        <blockquote class="tiktok-embed" cite="https://vm.tiktok.com/ZMA61XXXX/" style="background:#000">
+          <section><a href="https://vm.tiktok.com/ZMA61XXXX/">TikTok 3</a></section>
+        </blockquote>
+      </div>
+    </section>
+  </div>
 
-  function showBar(){
-    bar.classList.remove('hide');
-    clearTimeout(showBar.t);
-    showBar.t = setTimeout(()=>bar.classList.add('hide'), 4000);
-  }
+  <!-- Botones arriba/abajo -->
+  <div class="stack-right">
+    <button class="bigbtn" id="btnPrev" aria-label="Anterior">⬆️</button>
+    <button class="bigbtn" id="btnNext" aria-label="Siguiente">⬇️</button>
+  </div>
 
-  async function requestFS(){
-    const el=document.documentElement;
-    if(!document.fullscreenElement){
-      if(el.requestFullscreen) await el.requestFullscreen();
-      else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+  <!-- SDK oficial de TikTok -->
+  <script async src="https://www.tiktok.com/embed.js"></script>
+
+  <script>
+    const sections = Array.from(document.querySelectorAll('.item'));
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const gate = document.getElementById('gate');
+    let current = 0;
+
+    function go(i){
+      if (i<0) i=0;
+      if (i>=sections.length) i=sections.length-1;
+      current = i;
+      sections[i].scrollIntoView({behavior:'smooth', block:'start'});
     }
-  }
 
-  function setActive(btn){
-    document.querySelectorAll('#bar button').forEach(b=>b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-  }
+    // Swipe vertical
+    let startY=0,startX=0,moved=false;
+    window.addEventListener('touchstart',e=>{
+      const t=e.touches[0]; startY=t.clientY; startX=t.clientX; moved=false;
+    },{passive:true});
+    window.addEventListener('touchmove',()=>{moved=true;},{passive:true});
+    window.addEventListener('touchend',e=>{
+      if(!moved) return;
+      const t=e.changedTouches[0]; const dy=t.clientY-startY, dx=t.clientX-startX;
+      if(Math.abs(dy)>Math.abs(dx) && Math.abs(dy)>40){ dy<0?go(current+1):go(current-1); }
+    },{passive:true});
 
-  function stopHLS(){
-    try{ if (hls) { hls.destroy(); hls = null; } }catch(e){}
-    v.pause(); v.removeAttribute('src'); v.load();
-  }
+    btnPrev.onclick=()=>go(current-1);
+    btnNext.onclick=()=>go(current+1);
 
-  function stopYT(){
-    try{ yt.contentWindow?.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'); }catch(e){}
-    yt.src = 'about:blank';
-  }
+    document.getElementById('start').onclick=()=>{
+      gate.style.display='none';
+    };
 
-  function playHLS(src, btn){
-    mode = 'hls';
-    setActive(btn);
-    stopYT();
-    yt.style.display = 'none';
-    v.style.display = 'block';
-    stopHLS();
-
-    if (window.Hls && Hls.isSupported()){
-      hls = new Hls({ lowLatencyMode:true });
-      hls.attachMedia(v);
-      hls.on(Hls.Events.MEDIA_ATTACHED, () => { hls.loadSource(src); });
-      hls.on(Hls.Events.MANIFEST_PARSED, async () => {
-        try {
-          v.muted = true;          // autoplay permitido
-          await v.play();
-          overlay.classList.remove('show');
-        } catch(e){}
+    // Observador para actualizar el índice actual
+    const io=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){ current=sections.findIndex(s=>s===e.target); }
       });
-      hls.on(Hls.Events.ERROR, (evt, data)=>{
-        if (data?.fatal){
-          overlay.innerHTML = '<div class="hint">Error cargando Crónica. Probá cambiar de calidad tocando "Crónica".</div>';
-          overlay.classList.add('show');
-        }
-      });
-    } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
-      v.src = src;
-      (async ()=>{ try{ v.muted=true; await v.play(); overlay.classList.remove('show'); }catch(e){} })();
-    } else {
-      overlay.innerHTML = '<div class="hint">Tu navegador no soporta HLS.</div>';
-      overlay.classList.add('show');
-    }
-  }
-
-  function playYT(url, btn){
-    mode = 'yt';
-    setActive(btn);
-    stopHLS();
-    v.style.display = 'none';
-    yt.style.display = 'block';
-    yt.src = url; // autoplay mute por URL
-    setTimeout(()=>{
-      try{ yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*'); }catch(e){}
-    }, 600);
-  }
-
-  // ——— Botones ———
-  btnCronica.addEventListener('click', ()=>{
-    // Alterna calidad cada toque
-    cronicaQuality = (cronicaQuality === '720p') ? '480p' : '720p';
-    btnCronica.textContent = `Crónica ${cronicaQuality}`;
-    playHLS(CRONICA[cronicaQuality], btnCronica);
-  });
-
-  btnA24.addEventListener('click', ()=>{
-    playYT(btnA24.getAttribute('data-yt'), btnA24);
-  });
-
-  // Botón de SONIDO / FULLSCREEN (destraba audio en todos)
-  btnSound.addEventListener('click', async ()=>{
-    await requestFS();
-    if (mode === 'hls'){
-      try{ v.muted=false; v.volume=Math.max(0.3, v.volume||1); }catch(e){}
-      try{ await v.play(); }catch(e){}
-    } else {
-      try{
-        yt.contentWindow?.postMessage('{"event":"command","func":"unMute","args":""}', '*');
-        yt.contentWindow?.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-      }catch(e){}
-    }
-    overlay.classList.remove('show');
-  });
-
-  // Teclado / control remoto
-  document.addEventListener('keydown', async (e)=>{
-    showBar();
-    const k = e.key || e.code;
-
-    // Enter/OK = mismo que botón de sonido
-    if (k==='Enter' || k==='NumpadEnter') {
-      e.preventDefault();
-      btnSound.click();
-      return;
-    }
-
-    // Volumen (solo HLS)
-    if (k==='ArrowUp' || k==='ArrowDown'){
-      e.preventDefault();
-      if (mode==='hls'){
-        const delta = (k==='ArrowUp') ? +0.05 : -0.05;
-        v.volume = Math.max(0, Math.min(1, (v.volume||0)+delta));
-      }
-    }
-
-    // Salir FS
-    if (k==='Escape' || k==='Backspace'){
-      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
-    }
-  });
-
-  // Primer toque en pantalla también destraba
-  document.addEventListener('pointerdown', async ()=>{
-    if (overlay.classList.contains('show')) {
-      btnSound.click();
-    }
-  });
-
-  // Arranque: Crónica 720p
-  playHLS(CRONICA[cronicaQuality], btnCronica);
-  showBar();
-})();
-</script>
+    },{threshold:0.6});
+    sections.forEach(s=>io.observe(s));
+  </script>
 </body>
 </html>
