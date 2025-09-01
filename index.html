@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mi Web TV</title>
-<meta name="description" content="Player IPTV web con importación de listas M3U/W3U y canales legales.">
+<meta name="description" content="Player IPTV web con HLS e iframe; admite listas M3U/W3U y canales públicos.">
 <style>
-  :root{--bg:#0b1020;--panel:#0f172a;--card:#111827;--fg:#e2e8f0;--muted:#94a3b8;--accent:#22c55e}
+  :root{--bg:#0b1020;--panel:#0f172a;--fg:#e2e8f0;--muted:#94a3b8;--accent:#22c55e}
   *{box-sizing:border-box} html,body{height:100%}
   body{margin:0;background:linear-gradient(180deg,#0b1020,#111827);color:var(--fg);
        font:15px system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
@@ -31,9 +31,9 @@
   .ch img{width:36px;height:36px;border-radius:8px;object-fit:cover;background:#000}
   .ch .title{font-weight:600}
   .ch .meta{color:var(--muted);font-size:12px}
-  .player{background:radial-gradient(60% 60% at 50% 40%, #0c1430 0%, #080c1a 100%);display:flex;flex-direction:column}
-  .video-wrap{position:relative;aspect-ratio:16/9;background:#000}
-  video{width:100%;height:100%;display:block;background:#000}
+  .player{display:flex;flex-direction:column;background:radial-gradient(60% 60% at 50% 40%, #0c1430 0%, #080c1a 100%)}
+  .display{position:relative;aspect-ratio:16/9;background:#000}
+  video, iframe{width:100%;height:100%;display:block;border:0;background:#000}
   .controls{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.15)}
   .btn{appearance:none;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:var(--fg);padding:8px 12px;border-radius:10px;cursor:pointer}
   .btn.accent{border-color:transparent;background:var(--accent);color:#08210f;font-weight:700}
@@ -49,14 +49,18 @@
     <img src="https://i.ibb.co/d02C4nhf/LISTA-WISEPLAY-LOGO.png" alt="logo">
     <div>
       <h1>Mi Web TV</h1>
-      <p>Player con listas propias y canales públicos/legales</p>
+      <p>Player con HLS e IFRAME. Usa solo fuentes con permiso de embeber.</p>
     </div>
   </header>
 
   <aside class="sidebar">
     <div class="tools">
       <input id="manualName" placeholder="Nombre canal">
-      <input id="manualURL" placeholder="URL .m3u8">
+      <input id="manualURL" placeholder="URL .m3u8 o IFRAME (YouTube, etc.)">
+      <select id="manualType" title="Tipo">
+        <option value="hls">HLS (.m3u8)</option>
+        <option value="iframe">IFRAME</option>
+      </select>
       <button id="addManual">+ Agregar</button>
       <input id="listURL" placeholder="URL de lista .m3u o .w3u">
       <button id="importList" class="ghost">⬇ Importar</button>
@@ -68,14 +72,15 @@
   </aside>
 
   <main class="player">
-    <div class="video-wrap">
+    <div class="display" id="display">
+      <!-- Se alterna entre <video> y <iframe> según el canal -->
       <video id="video" controls playsinline></video>
     </div>
     <div class="controls">
       <button class="btn accent" id="playPause">⏯ Reproducir / Pausar</button>
       <button class="btn" id="mute">🔇 Silencio</button>
       <button class="btn" id="fs">⛶ Pantalla completa</button>
-      <span class="hint">Tip: pega .m3u8 o importa una .m3u/.w3u propia</span>
+      <span class="hint">Tip: pegá .m3u8 o un iframe permitido; también importá .m3u/.w3u</span>
     </div>
     <div class="now" id="now">Selecciona un canal…</div>
   </main>
@@ -84,23 +89,28 @@
 <!-- hls.js -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
-// ===== 1) Base legal (Pluto TV). Agrega lo tuyo arriba con "Agregar" o importando lista =====
+// ========= 1) Base de ejemplo (legales) =========
 const BASE = [
   { group: "Pluto TV – 24/7 Series", channels: [
-    { name:"South Park (ES) • 24/7", image:"https://imagenes.elpais.com/resizer/sRj5DPzWrRGBkU8ro34WRufp-LE=/1960x1470/", info:"Pluto TV",
+    { type:"hls", name:"South Park (ES) • 24/7", info:"Pluto TV",
+      image:"https://imagenes.elpais.com/resizer/sRj5DPzWrRGBkU8ro34WRufp-LE=/1960x1470/",
       url:"https://stitcher.pluto.tv/stitch/hls/channel/628751bb7154a40007168843/master.m3u8" },
-    { name:"Bob Esponja (ES) • 24/7", image:"https://estaticos-cdn.elperiodico.com/clip/6040f332-9afa-471d-b076-c060ae37450a_alta-libre-aspect-ratio_default_0.jpg", info:"Pluto TV",
+    { type:"hls", name:"Bob Esponja (ES) • 24/7", info:"Pluto TV",
+      image:"https://estaticos-cdn.elperiodico.com/clip/6040f332-9afa-471d-b076-c060ae37450a_alta-libre-aspect-ratio_default_0.jpg",
       url:"https://stitcher.pluto.tv/stitch/hls/channel/5f1aca0b4e448e00075e7c5e/master.m3u8" },
-    { name:"Las Tortugas Ninja (ES) • 24/7", image:"https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRjCZU5VhfZi4SrjxaKqmqtwNbzvT1tosIGVo4LLVInsyChkDLY", info:"Pluto TV",
-      url:"https://stitcher.pluto.tv/stitch/hls/channel/61373f1a12dd9f00077dcd6f/master.m3u8" },
-    { name:"Rugrats (ES) • 24/7", image:"https://m.media-amazon.com/images/I/81xncuEH8VL._AC_UF1000,1000_QL80_.jpg", info:"Pluto TV",
-      url:"https://stitcher.pluto.tv/stitch/hls/channel/610c09219fc0430007a3fce6/master.m3u8" },
   ]},
+  { group: "Ejemplos de IFRAME", channels: [
+    // Reemplaza el ID por el de un YouTube Live embebible del dueño del canal (permitido por YouTube)
+    { type:"iframe", name:"Ejemplo YouTube Live", info:"YouTube",
+      image:"https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png",
+      url:"https://www.youtube.com/embed/5qap5aO4i9A" } // demo (lofi radio)
+  ]}
 ];
 
-// ===== 2) Estado/UI =====
+// ========= 2) Estado/UI =========
 const $q = document.getElementById('q');
 const $list = document.getElementById('list');
+const $display = document.getElementById('display');
 const $video = document.getElementById('video');
 const $now = document.getElementById('now');
 const $btnPlay = document.getElementById('playPause');
@@ -109,20 +119,20 @@ const $btnFs = document.getElementById('fs');
 
 const $manualName = document.getElementById('manualName');
 const $manualURL  = document.getElementById('manualURL');
-const $addManual  = document.getElementById('addManual');
+const $manualType = document.getElementById('manualType');
 const $listURL    = document.getElementById('listURL');
 const $importList = document.getElementById('importList');
 
-let PLAYLIST = JSON.parse(localStorage.getItem('playlist')||'null') || BASE;
+let PLAYLIST = JSON.parse(localStorage.getItem('playlist_v2')||'null') || BASE;
 let CURRENT = null;
 let hls = null;
 
-// ===== 3) Render =====
+// ========= 3) Render =========
 function createChannelNode(ch, idx, gidx){
   const el = document.createElement('div');
   el.className = 'ch';
   el.dataset.idx = idx; el.dataset.gidx = gidx;
-  el.innerHTML = `<img src="${ch.image||''}" alt=""><div><div class="title">${ch.name}</div><div class="meta">${ch.info||''}</div></div>`;
+  el.innerHTML = `<img src="${ch.image||''}" alt=""><div><div class="title">${ch.name}</div><div class="meta">${ch.info||ch.type||''}</div></div>`;
   el.onclick = ()=> playChannel(ch, el);
   return el;
 }
@@ -144,19 +154,23 @@ function setActive(el){
   if(el) el.classList.add('active');
 }
 
-// ===== 4) Reproducir =====
-function playChannel(ch, el){
-  setActive(el); CURRENT = ch;
-  $now.innerHTML = `<b>Reproduciendo:</b> ${ch.name} <span style="color:#94a3b8">(${ch.info||'Canal'})</span>`;
-  if (hls) { hls.destroy(); hls = null; }
+// ========= 4) Reproducir (HLS o IFRAME) =========
+function clearPlayer(){
+  // elimino iframe si existe
+  const oldIframe = $display.querySelector('iframe');
+  if(oldIframe) oldIframe.remove();
+  // reinicio video/hls
+  if (hls) { try{hls.destroy();}catch{} hls=null; }
+  $video.pause(); $video.removeAttribute('src'); $video.load();
+}
+function playHLS(url){
   if ($video.canPlayType('application/vnd.apple.mpegurl')) {
-    $video.src = ch.url;
+    $video.src = url;
   } else if (window.Hls && Hls.isSupported()) {
     hls = new Hls({ maxBufferLength: 60, enableWorker: true });
-    hls.loadSource(ch.url);
+    hls.loadSource(url);
     hls.attachMedia($video);
     hls.on(Hls.Events.ERROR, (evt, data) => {
-      console.warn('HLS error', data);
       if (data.fatal) {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
@@ -166,59 +180,77 @@ function playChannel(ch, el){
       }
     });
   } else {
-    alert('Tu navegador no soporta HLS. Probá Safari/iOS o Chrome/Firefox/Edge con hls.js.');
+    alert('Tu navegador no soporta HLS. Probá Safari/iOS o Chrome/Firefox/Edge.');
     return;
   }
   $video.play().catch(()=>{});
 }
+function playIFRAME(url){
+  const iframe = document.createElement('iframe');
+  iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+  iframe.referrerPolicy = "no-referrer-when-downgrade";
+  iframe.src = url;
+  $display.appendChild(iframe);
+}
+function playChannel(ch, el){
+  setActive(el); CURRENT = ch; clearPlayer();
+  $now.innerHTML = `<b>Reproduciendo:</b> ${ch.name} <span style="color:#94a3b8">(${ch.info||ch.type||'Canal'})</span>`;
+  if(ch.type === 'iframe'){ playIFRAME(ch.url); }
+  else { playHLS(ch.url); }
+}
 
-// ===== 5) Búsqueda =====
+// ========= 5) Búsqueda & Controles =========
 $q.addEventListener('input', e=> renderList(e.target.value));
+$btnPlay.onclick = ()=>{ if($video.offsetParent !== null){ if($video.paused) $video.play(); else $video.pause(); } };
+$btnMute.onclick = ()=>{ if($video.offsetParent !== null){ $video.muted = !$video.muted; $btnMute.textContent = $video.muted ? '🔊 Sonido' : '🔇 Silencio'; } };
+$btnFs.onclick = ()=>{ const el = $display; if (el.requestFullscreen) el.requestFullscreen(); };
 
-// ===== 6) Botones player =====
-$btnPlay.onclick = ()=>{ if($video.paused) $video.play(); else $video.pause(); };
-$btnMute.onclick = ()=>{ $video.muted = !$video.muted; $btnMute.textContent = $video.muted ? '🔊 Sonido' : '🔇 Silencio'; };
-$btnFs.onclick = ()=>{ if ($video.requestFullscreen) $video.requestFullscreen(); };
-
-// ===== 7) Agregar manual =====
+// ========= 6) Agregar manual (HLS o IFRAME) =========
 $addManual.onclick = ()=>{
   const name = ($manualName.value||'Canal').trim();
   const url  = ($manualURL.value||'').trim();
-  if(!/^https?:\/\/.+\.m3u8(\?.*)?$/i.test(url)) return alert('Poné una URL .m3u8 válida.');
+  const type = $manualType.value;
+  if(type==='hls' && !/^https?:\/\/.+\.m3u8(\?.*)?$/i.test(url)) return alert('URL HLS inválida (.m3u8).');
+  if(type==='iframe' && !/^https?:\/\/.+/i.test(url)) return alert('URL de iframe inválida.');
   if(!PLAYLIST[0]) PLAYLIST[0] = { group:'Mis canales', channels:[] };
-  PLAYLIST[0].channels.unshift({ name, url, info:'Personal', image:'' });
-  localStorage.setItem('playlist', JSON.stringify(PLAYLIST));
+  PLAYLIST[0].channels.unshift({ type, name, url, info:(type==='hls'?'HLS':'IFRAME'), image:'' });
+  localStorage.setItem('playlist_v2', JSON.stringify(PLAYLIST));
   $manualName.value=''; $manualURL.value='';
   renderList($q.value);
 };
 
-// ===== 8) Importar lista .m3u o .w3u =====
+// ========= 7) Importar listas .m3u / .w3u =========
 async function parseM3U(text){
   const lines = text.split(/\r?\n/);
   const out = [];
   for(let i=0;i<lines.length;i++){
     const l = lines[i].trim();
     if(l.startsWith('#EXTINF')){
-      const titleMatch = l.split(',').pop().trim();
+      const title = l.split(',').pop().trim() || 'Canal';
       const url = (lines[i+1]||'').trim();
-      if(/^https?:\/\//i.test(url)) out.push({ name:titleMatch||'Canal', url, info:'M3U' });
+      if(/^https?:\/\/.+\.m3u8(\?.*)?$/i.test(url)) out.push({ type:'hls', name:title, url, info:'M3U' });
+      // si la m3u apunta a otra lista, no la seguimos (solo streams directos)
     }
   }
-  return [{ group:'Importado (M3U)', channels: out }];
+  return out.length ? [{ group:'Importado (M3U)', channels: out }] : [];
 }
 async function parseW3U(text){
   try{
     const json = JSON.parse(text);
-    const groups = (json.groups||json || []);
+    const groups = (json.groups||json||[]);
     const mapped = groups.map(g=>({
       group: g.name || g.nombre || 'Grupo',
-      channels: (g.stations||g.estaciones||[]).map(s=>({
-        name: s.name || s.nombre || 'Canal',
-        url: s.url, info:'W3U', image: s.image || s.imagen || ''
-      })).filter(x=>/^https?:\/\//i.test(x.url))
+      channels: (g.stations||g.estaciones||[]).map(s=>{
+        const name = s.name || s.nombre || 'Canal';
+        const url  = s.url; const img = s.image || s.imagen || '';
+        // Detecto si es HLS o IFRAME
+        if(/^https?:\/\/.+\.m3u8(\?.*)?$/i.test(url)) return { type:'hls', name, url, image: img, info:'W3U' };
+        if(/^https?:\/\//i.test(url)) return { type:'iframe', name, url, image: img, info:'W3U IFRAME' };
+        return null;
+      }).filter(Boolean)
     }));
     return mapped;
-  }catch(e){ return []; }
+  }catch{ return []; }
 }
 $importList.onclick = async ()=>{
   const url = ($listURL.value||'').trim();
@@ -231,7 +263,7 @@ $importList.onclick = async ()=>{
     else imported = await parseW3U(text);
     if(!imported.length) return alert('No pude interpretar la lista.');
     PLAYLIST = [...imported, ...PLAYLIST];
-    localStorage.setItem('playlist', JSON.stringify(PLAYLIST));
+    localStorage.setItem('playlist_v2', JSON.stringify(PLAYLIST));
     renderList($q.value);
     alert('Lista importada ✔');
   }catch(e){
@@ -239,7 +271,7 @@ $importList.onclick = async ()=>{
   }
 };
 
-// ===== 9) Primera carga =====
+// ========= 8) Primera carga =========
 renderList();
 const first = document.querySelector('.ch'); if(first) first.click();
 </script>
