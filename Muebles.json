@@ -8,5 +8,10 @@
     "titulo": "Silla Moderna",
     "precio": 5000,
     "imagen": "https://via.placeholder.com/200"
+  },
+  {
+    "titulo": "Sofá de 3 cuerpos",
+    "precio": 45000,
+    "imagen": "https://via.placeholder.com/200"
   }
 ]
