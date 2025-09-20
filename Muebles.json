@@ -1,0 +1,12 @@
+[
+  {
+    "titulo": "Mesa de Madera",
+    "precio": 15000,
+    "imagen": "https://via.placeholder.com/200"
+  },
+  {
+    "titulo": "Silla Moderna",
+    "precio": 5000,
+    "imagen": "https://via.placeholder.com/200"
+  }
+]
